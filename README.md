@@ -13,6 +13,14 @@
 ---
 
 <p align="center">
+  <img src="./docs/screenshot.png" alt="Image Studio 主界面" width="880">
+  <br />
+  <sub>左侧:控制面板(prompt / 风格 / 比例 / 质量 / 数量) · 中:画板 + 工具栏 + 状态栏 · 右:历史记录</sub>
+</p>
+
+---
+
+<p align="center">
   <a href="https://gptcodex.top">
     <img src="./docs/banner-gptcodex.png" alt="GPTCODEX · gptcodex.top" width="420">
   </a>
@@ -49,16 +57,6 @@
 | 🖼 **完整图像编辑器** | Konva 画布、蒙版+橡皮、4 种标注、旋转/翻转/裁剪、历史对比、并发批量(1/2/4/8) |
 | 🧩 **多标签 workspace** | 浏览器风的多 tab,每个独立 prompt/参数/源图;切换不丢现场 |
 | 💾 **100% 本地数据** | 无遥测、无云端账户、无内购;API key、历史、生成图都在你的机器上 |
-
----
-
-## 截图
-
-<p align="center">
-  <img src="./docs/screenshot.png" alt="Image Studio 主界面" width="880">
-  <br />
-  <sub>左侧:控制面板(prompt / 风格 / 比例 / 质量 / 数量) · 中:画板 + 工具栏 + 状态栏 · 右:历史记录</sub>
-</p>
 
 ---
 
