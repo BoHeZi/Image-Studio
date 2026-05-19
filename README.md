@@ -54,7 +54,11 @@
 
 ## 截图
 
-(可在 [Releases](https://github.com/RoseKhlifa/Image-Studio/releases) 页面查看运行截图,或自行 build 一份试试。)
+<p align="center">
+  <img src="./docs/screenshot.png" alt="Image Studio 主界面" width="880">
+  <br />
+  <sub>左侧:控制面板(prompt / 风格 / 比例 / 质量 / 数量) · 中:画板 + 工具栏 + 状态栏 · 右:历史记录</sub>
+</p>
 
 ---
 
