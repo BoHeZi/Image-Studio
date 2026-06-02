@@ -1,17 +1,37 @@
-import { Github, Minus, Monitor, Moon, Plus, Settings, Square, Star, Sun, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Github, Minus, Maximize2, Minimize2, Monitor, Moon, Plus, Settings, Star, Sun, X } from "lucide-react";
 import { useStudioStore } from "../../state/studioStore";
 import { OpenExternalURL } from "../../platform/runtime/host";
 import { usePlatform } from "../../platform/context";
 import { openExternalURLForPlatform } from "../../platform/android/bridge";
 import { AppHeaderBrand } from "./AppHeaderBrand";
 import { HeaderIconBtn, HeaderToggleBtn } from "./headerPrimitives";
-import { WindowMinimise, WindowToggleMaximise, WindowClose } from "../../../wailsjs/runtime/runtime";
+import { WindowMinimise, WindowMaximise, WindowUnmaximise, Quit, WindowIsMaximised } from "../../../wailsjs/runtime/runtime";
 
 const REPO_URL = "https://github.com/RoseKhlifa/Image-Studio";
 
 export function AppHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
   const { fullscreen, theme, setTheme, pushToast, workspaces, newWorkspace, openStarPrompt } = useStudioStore();
   const { isAndroid, isAndroidPhone, isAndroidPad, isMac, usesFluentUI, usesAndroidUI, usesAppleUI } = usePlatform();
+  const [isMaximized, setIsMaximized] = useState(false);
+
+  useEffect(() => {
+    WindowIsMaximised().then(setIsMaximized);
+    const onResize = () => WindowIsMaximised().then(setIsMaximized);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const toggleMaximize = () => {
+    if (isMaximized) {
+      WindowUnmaximise();
+      setIsMaximized(false);
+    } else {
+      WindowMaximise();
+      setIsMaximized(true);
+    }
+  };
+
   if (fullscreen) return null;
 
   return (
@@ -98,10 +118,10 @@ export function AppHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
           <button onClick={WindowMinimise} className="flex h-[48px] w-[46px] items-center justify-center text-zinc-500 transition-colors hover:bg-black/[0.04] dark:text-zinc-400 dark:hover:bg-white/[0.06]" title="最小化">
             <Minus className="h-4 w-4" />
           </button>
-          <button onClick={WindowToggleMaximise} className="flex h-[48px] w-[46px] items-center justify-center text-zinc-500 transition-colors hover:bg-black/[0.04] dark:text-zinc-400 dark:hover:bg-white/[0.06]" title="最大化">
-            <Square className="h-3.5 w-3.5" />
+          <button onClick={toggleMaximize} className="flex h-[48px] w-[46px] items-center justify-center text-zinc-500 transition-colors hover:bg-black/[0.04] dark:text-zinc-400 dark:hover:bg-white/[0.06]" title={isMaximized ? "还原" : "最大化"}>
+            {isMaximized ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
           </button>
-          <button onClick={WindowClose} className="flex h-[48px] w-[46px] items-center justify-center text-zinc-500 transition-colors hover:bg-red-500 hover:text-white dark:text-zinc-400 dark:hover:bg-red-500 dark:hover:text-white" title="关闭">
+          <button onClick={Quit} className="flex h-[48px] w-[46px] items-center justify-center text-zinc-500 transition-colors hover:bg-red-500 hover:text-white dark:text-zinc-400 dark:hover:bg-red-500 dark:hover:text-white" title="关闭">
             <X className="h-4 w-4" />
           </button>
         </div>
