@@ -1,0 +1,182 @@
+name: Release
+
+# Build desktop targets in parallel and produce Android APKs for phone and pad
+# shells from the bundled WebView wrapper in `android-shell/`.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      base_version:
+        description: "基础版本号，例如 0.1.6。手动 release 编译前必须填写。"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  prepare-version:
+    name: Prepare version metadata
+    runs-on: ubuntu-24.04
+    outputs:
+      product_version: ${{ steps.version.outputs.product_version }}
+      app_version: ${{ steps.version.outputs.app_version }}
+      frontend_version: ${{ steps.version.outputs.frontend_version }}
+      android_version_name: ${{ steps.version.outputs.android_version_name }}
+      android_version_code: ${{ steps.version.outputs.android_version_code }}
+      version_channel: ${{ steps.version.outputs.version_channel }}
+      version_sha: ${{ steps.version.outputs.version_sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute version
+        id: version
+        shell: bash
+        env:
+          DISPATCH_BASE_VERSION: ${{ github.event.inputs.base_version }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ -z "${DISPATCH_BASE_VERSION// }" ]; then
+              echo "base_version is required for manual release builds" >&2
+              exit 1
+            fi
+            eval "$(./scripts/compute-version.sh "$DISPATCH_BASE_VERSION")"
+          else
+            eval "$(./scripts/compute-version.sh)"
+          fi
+          {
+            echo "product_version=${PRODUCT_VERSION}"
+            echo "app_version=${APP_VERSION}"
+            echo "frontend_version=${FRONTEND_VERSION}"
+            echo "android_version_name=${ANDROID_VERSION_NAME}"
+            echo "android_version_code=${ANDROID_VERSION_CODE}"
+            echo "version_channel=${VERSION_CHANNEL}"
+            echo "version_sha=${VERSION_SHA}"
+          } >> "$GITHUB_OUTPUT"
+
+  build-desktop:
+    name: Build ${{ matrix.id }}
+    runs-on: ${{ matrix.runner }}
+    needs: prepare-version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: windows-amd64
+            runner: windows-latest
+            goos: windows
+            artifact_suffix: windows-amd64.exe
+            wails_args: -platform windows/amd64 -clean
+            package_cmd: cp image-studio/build/bin/image-studio.exe "$artifact_path"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          check-latest: true
+          cache-dependency-path: image-studio/go.sum
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: image-studio/frontend/package-lock.json
+
+      - name: Sync version metadata
+        shell: bash
+        env:
+          IMAGE_STUDIO_PRODUCT_VERSION: ${{ needs.prepare-version.outputs.product_version }}
+          IMAGE_STUDIO_FRONTEND_VERSION: ${{ needs.prepare-version.outputs.frontend_version }}
+        run: node ./scripts/sync-version-metadata.mjs
+
+      - name: Install frontend dependencies
+        working-directory: image-studio/frontend
+        shell: bash
+        run: npm ci
+
+      - name: Install Linux build dependencies
+        if: matrix.goos == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      - name: Install Wails CLI
+        if: matrix.goos != 'darwin'
+        shell: bash
+        run: |
+          go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Build desktop app
+        working-directory: image-studio
+        shell: bash
+        env:
+          VITE_APP_VERSION: ${{ needs.prepare-version.outputs.app_version }}
+        run: |
+          if [ "${{ matrix.goos }}" = "darwin" ]; then
+            bash ../scripts/package-local-macos-app.sh
+          else
+            wails build ${{ matrix.wails_args }} \
+              -ldflags "-X github.com/yuanhua/image-gptcodex/pkg/client.Version=${{ needs.prepare-version.outputs.app_version }}"
+          fi
+
+      - name: Stage packaged artifact
+        id: package
+        shell: bash
+        run: |
+          mkdir -p dist
+          artifact_name="image-studio-${{ needs.prepare-version.outputs.app_version }}-${{ matrix.artifact_suffix }}"
+          artifact_path="dist/${artifact_name}"
+          ${{ matrix.package_cmd }}
+          ls -la dist/
+          {
+            echo "artifact_name=${artifact_name}"
+            echo "artifact_path=${artifact_path}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.artifact_name }}
+          path: ${{ steps.package.outputs.artifact_path }}
+          retention-days: 14
+
+  publish-release:
+    name: Publish release assets
+    runs-on: ubuntu-24.04
+    needs:
+      - prepare-version
+      - build-desktop
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Flatten artifact layout
+        shell: bash
+        run: |
+          mkdir -p release-assets
+          find dist -type f -maxdepth 2 -exec cp {} release-assets/ \;
+          ls -la release-assets/
+
+      - name: Attach to release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: v${{ needs.prepare-version.outputs.product_version }}
+          tag_name: v${{ needs.prepare-version.outputs.product_version }}
+          files: release-assets/*
+          fail_on_unmatched_files: true
+          generate_release_notes: false
