@@ -1,10 +1,11 @@
-import { Github, Monitor, Moon, Plus, Settings, Star, Sun } from "lucide-react";
+import { Github, Minus, Monitor, Moon, Plus, Settings, Square, Star, Sun, X } from "lucide-react";
 import { useStudioStore } from "../../state/studioStore";
 import { OpenExternalURL } from "../../platform/runtime/host";
 import { usePlatform } from "../../platform/context";
 import { openExternalURLForPlatform } from "../../platform/android/bridge";
 import { AppHeaderBrand } from "./AppHeaderBrand";
 import { HeaderIconBtn, HeaderToggleBtn } from "./headerPrimitives";
+import { WindowMinimise, WindowToggleMaximise, WindowClose } from "../../../wailsjs/runtime/runtime";
 
 const REPO_URL = "https://github.com/RoseKhlifa/Image-Studio";
 
@@ -15,7 +16,9 @@ export function AppHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
 
   return (
     <header
-      className={`drag-region app-header sticky top-0 z-40 border-b border-[var(--border)] bg-transparent relative ${
+      className={`drag-region app-header sticky top-0 z-40 flex items-center gap-3 border-b border-[var(--border)] bg-[var(--toolbar)] ${
+        usesFluentUI ? "" : "backdrop-blur-2xl"
+      } ${
         usesAppleUI ? "liquid-glass-bar" : ""
       } ${
         usesAndroidUI
@@ -28,14 +31,9 @@ export function AppHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
             : "min-h-12 px-4"
       }`}
     >
-      {/* 背景模糊层 — 与文字分离，Chromium 下 backdrop-filter 会让文字产生方形裁剪，
-          分离后文字不在 backdrop-filter 层内，方块消失。
-          macOS 的 liquid-glass-bar 有自己的处理方式，不在此处理。 */}
-      {!usesAndroidUI && !usesAppleUI && (
-        <div className="absolute inset-0 z-0 bg-[var(--toolbar)] backdrop-blur-2xl" />
-      )}
-      <div className={`relative z-10 flex min-w-0 flex-1 items-center gap-3 ${usesAndroidUI ? "android-header-copy" : ""} ${isMac ? "mac-header-copy" : ""}`}>
+      <div className={`min-w-0 flex-1 ${usesAndroidUI ? "android-header-copy" : ""} ${isMac ? "mac-header-copy" : ""}`}>
         <AppHeaderBrand />
+      </div>
 
       <div className={`no-drag ml-auto flex items-center shrink-0 ${usesAndroidUI ? "android-header-actions" : ""} ${isMac ? "mac-header-actions" : ""} ${usesFluentUI ? "gap-1" : isMac ? "gap-2" : "gap-1.5"}`}>
         {!isAndroid && <HeaderIconBtn
@@ -95,7 +93,19 @@ export function AppHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
           <Settings className="h-4 w-4" />
         </HeaderIconBtn>
       </div>
-      </div>
+      {usesFluentUI && (
+        <div className="no-drag ml-0 flex items-center">
+          <button onClick={WindowMinimise} className="flex h-[48px] w-[46px] items-center justify-center text-zinc-500 transition-colors hover:bg-black/[0.04] dark:text-zinc-400 dark:hover:bg-white/[0.06]" title="最小化">
+            <Minus className="h-4 w-4" />
+          </button>
+          <button onClick={WindowToggleMaximise} className="flex h-[48px] w-[46px] items-center justify-center text-zinc-500 transition-colors hover:bg-black/[0.04] dark:text-zinc-400 dark:hover:bg-white/[0.06]" title="最大化">
+            <Square className="h-3.5 w-3.5" />
+          </button>
+          <button onClick={WindowClose} className="flex h-[48px] w-[46px] items-center justify-center text-zinc-500 transition-colors hover:bg-red-500 hover:text-white dark:text-zinc-400 dark:hover:bg-red-500 dark:hover:text-white" title="关闭">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
     </header>
   );
 }
