@@ -20,6 +20,7 @@ var assets embed.FS
 func main() {
 	svc := backend.NewService()
 	appOptions := &options.App{
+		Frameless: true,
 		Title:     "Image Studio",
 		Width:     1440,
 		Height:    980,
@@ -30,7 +31,7 @@ func main() {
 			Handler:    svc.MediaHandler(http.NotFoundHandler()),
 			Middleware: svc.MediaHandler,
 		},
-		BackgroundColour: &options.RGBA{R: 18, G: 20, B: 26, A: 1},
+		BackgroundColour: &options.RGBA{R: 0, G: 0, B: 0, A: 0},
 		OnStartup:        svc.Startup,
 		Bind: []interface{}{
 			svc,
@@ -62,22 +63,14 @@ func main() {
 		appOptions.Windows = &wailswindows.Options{
 			Theme:                wailswindows.SystemDefault,
 			BackdropType:         wailswindows.Mica,
-			WebviewIsTransparent: false,
+			WebviewIsTransparent: true,
 			WindowIsTranslucent:  true,
 			WebviewUserDataPath:  webviewUserDataPath,
 			CustomTheme: &wailswindows.ThemeSettings{
-				DarkModeTitleBar:           wailswindows.RGB(32, 32, 32),
-				DarkModeTitleBarInactive:   wailswindows.RGB(38, 38, 38),
-				DarkModeTitleText:          wailswindows.RGB(245, 245, 245),
-				DarkModeTitleTextInactive:  wailswindows.RGB(200, 200, 200),
-				DarkModeBorder:             wailswindows.RGB(54, 54, 54),
-				DarkModeBorderInactive:     wailswindows.RGB(45, 45, 45),
-				LightModeTitleBar:          wailswindows.RGB(243, 243, 243),
-				LightModeTitleBarInactive:  wailswindows.RGB(237, 237, 237),
-				LightModeTitleText:         wailswindows.RGB(31, 31, 31),
-				LightModeTitleTextInactive: wailswindows.RGB(96, 96, 96),
-				LightModeBorder:            wailswindows.RGB(219, 219, 219),
-				LightModeBorderInactive:    wailswindows.RGB(226, 226, 226),
+				DarkModeBorder:          wailswindows.RGB(54, 54, 54),
+				DarkModeBorderInactive:  wailswindows.RGB(45, 45, 45),
+				LightModeBorder:         wailswindows.RGB(219, 219, 219),
+				LightModeBorderInactive: wailswindows.RGB(226, 226, 226),
 			},
 		}
 	}
