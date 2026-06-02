@@ -1,4 +1,4 @@
-name: Release
+name: win-amd-Release
 
 # Build desktop targets in parallel and produce Android APKs for phone and pad
 # shells from the bundled WebView wrapper in `android-shell/`.
