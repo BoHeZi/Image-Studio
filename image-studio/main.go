@@ -63,7 +63,7 @@ func main() {
 		appOptions.Windows = &wailswindows.Options{
 			Theme:                wailswindows.SystemDefault,
 			BackdropType:         wailswindows.Mica,
-			WebviewIsTransparent: true,
+			WebviewIsTransparent: false,
 			WindowIsTranslucent:  true,
 			WebviewUserDataPath:  webviewUserDataPath,
 			CustomTheme: &wailswindows.ThemeSettings{
