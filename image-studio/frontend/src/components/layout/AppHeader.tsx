@@ -15,9 +15,7 @@ export function AppHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
 
   return (
     <header
-      className={`drag-region app-header sticky top-0 z-40 flex items-center gap-3 border-b border-[var(--border)] bg-[var(--toolbar)] backdrop-blur-2xl ${
-        usesFluentUI ? "isolate" : ""
-      } ${
+      className={`drag-region app-header sticky top-0 z-40 flex items-center gap-3 ${
         usesAppleUI ? "liquid-glass-bar" : ""
       } ${
         usesAndroidUI
@@ -30,11 +28,12 @@ export function AppHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
             : "min-h-12 px-4"
       }`}
     >
-      <div className={`min-w-0 flex-1 ${usesAndroidUI ? "android-header-copy" : ""} ${isMac ? "mac-header-copy" : ""}`}>
+      <div className="absolute inset-0 z-0 border-b border-[var(--border)] bg-[var(--toolbar)] backdrop-blur-2xl" />
+      <div className={`min-w-0 flex-1 relative z-10 ${usesAndroidUI ? "android-header-copy" : ""} ${isMac ? "mac-header-copy" : ""}`}>
         <AppHeaderBrand />
       </div>
 
-      <div className={`no-drag ml-auto flex items-center shrink-0 ${usesAndroidUI ? "android-header-actions" : ""} ${isMac ? "mac-header-actions" : ""} ${usesFluentUI ? "gap-1" : isMac ? "gap-2" : "gap-1.5"}`}>
+      <div className={`no-drag ml-auto flex items-center shrink-0 relative z-10 ${usesAndroidUI ? "android-header-actions" : ""} ${isMac ? "mac-header-actions" : ""} ${usesFluentUI ? "gap-1" : isMac ? "gap-2" : "gap-1.5"}`}>
         {!isAndroid && <HeaderIconBtn
           onClick={() => newWorkspace()}
           title={workspaces.length > 1 ? `${workspaces.length} 个标签 · 新建` : "新建标签"}
