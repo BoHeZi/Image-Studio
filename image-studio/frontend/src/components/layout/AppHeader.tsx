@@ -15,7 +15,7 @@ export function AppHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
 
   return (
     <header
-      className={`drag-region app-header sticky top-0 z-40 flex items-center gap-3 ${
+      className={`drag-region app-header sticky top-0 z-40 border-b border-[var(--border)] bg-transparent relative ${
         usesAppleUI ? "liquid-glass-bar" : ""
       } ${
         usesAndroidUI
@@ -28,12 +28,16 @@ export function AppHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
             : "min-h-12 px-4"
       }`}
     >
-      <div className="absolute inset-0 z-0 border-b border-[var(--border)] bg-[var(--toolbar)] backdrop-blur-2xl" />
-      <div className={`min-w-0 flex-1 relative z-10 ${usesAndroidUI ? "android-header-copy" : ""} ${isMac ? "mac-header-copy" : ""}`}>
+      {/* 背景模糊层 — 与文字分离，Chromium 下 backdrop-filter 会让文字产生方形裁剪，
+          分离后文字不在 backdrop-filter 层内，方块消失。
+          macOS 的 liquid-glass-bar 有自己的处理方式，不在此处理。 */}
+      {!usesAndroidUI && !usesAppleUI && (
+        <div className="absolute inset-0 z-0 bg-[var(--toolbar)] backdrop-blur-2xl" />
+      )}
+      <div className={`relative z-10 flex min-w-0 flex-1 items-center gap-3 ${usesAndroidUI ? "android-header-copy" : ""} ${isMac ? "mac-header-copy" : ""}`}>
         <AppHeaderBrand />
-      </div>
 
-      <div className={`no-drag ml-auto flex items-center shrink-0 relative z-10 ${usesAndroidUI ? "android-header-actions" : ""} ${isMac ? "mac-header-actions" : ""} ${usesFluentUI ? "gap-1" : isMac ? "gap-2" : "gap-1.5"}`}>
+      <div className={`no-drag ml-auto flex items-center shrink-0 ${usesAndroidUI ? "android-header-actions" : ""} ${isMac ? "mac-header-actions" : ""} ${usesFluentUI ? "gap-1" : isMac ? "gap-2" : "gap-1.5"}`}>
         {!isAndroid && <HeaderIconBtn
           onClick={() => newWorkspace()}
           title={workspaces.length > 1 ? `${workspaces.length} 个标签 · 新建` : "新建标签"}
@@ -90,6 +94,7 @@ export function AppHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
         >
           <Settings className="h-4 w-4" />
         </HeaderIconBtn>
+      </div>
       </div>
     </header>
   );
