@@ -16,6 +16,8 @@ export function AppHeader({ onOpenSettings }: { onOpenSettings: () => void }) {
   return (
     <header
       className={`drag-region app-header sticky top-0 z-40 flex items-center gap-3 border-b border-[var(--border)] bg-[var(--toolbar)] backdrop-blur-2xl ${
+        usesFluentUI ? "isolate" : ""
+      } ${
         usesAppleUI ? "liquid-glass-bar" : ""
       } ${
         usesAndroidUI
